@@ -1,8 +1,9 @@
 import numpy as np
 import cv2
+import matplotlib.pyplot as plt
 
-# Please insert what ever path leads to the folder with the input images to run the script
-path = "/Users/julia/Desktop/CIS6320/SegmentationAlgorthimImages/"
+# Insert path below
+path = " "
 
 # Currently have to enter threshold values by hand based off extracting them from imageJ
 MeasuredThresholds = np.array([
@@ -38,13 +39,43 @@ def Threshold(InputImg, Range):
     # Check the bite type. Expecting 8 bite for all but just in case
     if InputImg.dtype != "uint8":
         print("not 8 bite: " + InputImg.dtype)
-    # Convert Input Image from RGB to luv
-    Luv = cv2.cvtColor(InputImg, cv2.COLOR_RGB2Luv)
+    # Open CV loads its images as BGR NOT RGB
+    # Convert Input Image from BGR to luv
+    Luv = cv2.cvtColor(InputImg, cv2.COLOR_BGR2Luv)
     # Define the mask
     mask = cv2.inRange(Luv, Range[0], Range[1])
     # Apply mask to original image
     segmented = cv2.bitwise_and(InputImg, InputImg, mask=mask)
     return mask, segmented
+
+
+# Building figures for reports
+def Figure(Original, Wide, Average, Label):
+    # Matplotlib uses RGB space but open CV uses BGR, so need to convert the image prior to displaying
+    plt.subplot(2, 3, 1)
+    plt.axis("off")
+    plt.imshow(cv2.cvtColor(Original, cv2.COLOR_BGR2RGB))
+    plt.text(260, 0, "a)")
+    plt.subplot(2, 3, 2)
+    plt.axis("off")
+    plt.imshow(cv2.cvtColor(Wide[1], cv2.COLOR_BGR2RGB))
+    plt.text(260, 0, "b)")
+    plt.subplot(2, 3, 3)
+    plt.axis("off")
+    plt.imshow(cv2.cvtColor(Average[1], cv2.COLOR_BGR2RGB))
+    plt.text(260, 0, "c)")
+    plt.subplot(2, 3, 5)
+    plt.axis("off")
+    plt.gray()
+    plt.imshow(Wide[0])
+    plt.text(260, 0, "d)")
+    plt.subplot(2, 3, 6)
+    plt.axis("off")
+    plt.gray()
+    plt.imshow(Average[0])
+    plt.text(260, 0, "e)")
+    plt.savefig(Label + "Figure.jpg")
+
 
 # Creating masks and segmentation of all 11 images, using both style of threshold values
 TH1Wide = Threshold(cv2.imread(path + "TH1_BIOUG53847_17_B08.jpg"), WideRange)
@@ -116,3 +147,15 @@ cv2.imwrite("UK2A_mask.jpg", UK2Average[0])
 cv2.imwrite("UK2A_segment.jpg", UK2Average[1])
 cv2.imwrite("GTA_mask.jpg", GTAverage[0])
 cv2.imwrite("GTA_segment.jpg", GTAverage[1])
+
+# Create figures fo remain body of report
+# Best threshold
+Figure(cv2.imread(path + "TH6_BIOUG53847_78_G06.jpg"), TH6Wide, TH6Average, "Best")
+# Worst threshold
+Figure(cv2.imread(path + "TH1_BIOUG53847_17_B08.jpg"), TH1Wide, TH1Average, "Worst")
+# Unknown one
+Figure(cv2.imread(path + "UK1_BIOUG53847_63_F10.jpg"), UK1Wide, UK1Average, "UK1")
+# Unknown two
+Figure(cv2.imread(path + "UK2_BIOUG53847_93_H04.jpg"), UK2Wide, UK2Average, "UK2")
+# Ground truth
+Figure(cv2.imread(path + "GT1_BIOUG59392_8_A08.jpg"), GTWide, GTAverage, "GT")
